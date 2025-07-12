@@ -1,5 +1,6 @@
 package com.vdavitashviliekvitsiani.messenger_app.ui.auth
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.vdavitashviliekvitsiani.messenger_app.MainActivity
 import com.vdavitashviliekvitsiani.messenger_app.service.AuthService
 import com.vdavitashviliekvitsiani.messenger_app.ui.theme.MessengerappTheme
 
@@ -52,6 +54,7 @@ class AuthActivity : ComponentActivity() {
                         authService.signIn(nickname, password) { success, error ->
                             isLoading = false
                             if (success) {
+                                startActivity(Intent(this@AuthActivity, MainActivity::class.java))
                                 finish()
                             } else {
                                 errorMessage = error
@@ -75,6 +78,7 @@ class AuthActivity : ComponentActivity() {
                         authService.signUp(nickname, profession, password) { success, error ->
                             isLoading = false
                             if (success) {
+                                startActivity(Intent(this@AuthActivity, MainActivity::class.java))
                                 finish()
                             } else {
                                 errorMessage = error
