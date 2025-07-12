@@ -7,4 +7,13 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="primary_blue">#4285F4</color>
+    <color name="light_blue">#7FB3FF</color>
+    <color name="background_gray">#F5F5F5</color>
+    <color name="text_gray">#666666</color>
+    <color name="border_gray">#E0E0E0</color>
+    <color name="yellow_circle">#FFD54F</color>
+    <color name="message_bubble_sent">#4285F4</color>
+    <color name="message_bubble_received">#F0F0F0</color>
 </resources>

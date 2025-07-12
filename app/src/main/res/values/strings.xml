@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">messenger-app</string>
+
+    <!-- Authentication -->
+    <string name="enter_nickname">Enter your nickname</string>
+    <string name="enter_password">Enter your password</string>
+    <string name="what_i_do">What I do</string>
+    <string name="sign_in">SIGN IN</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="not_registered">Not registered?</string>
+
+    <!-- Validation messages -->
+    <string name="nickname_required">Nickname is required</string>
+    <string name="password_required">Password is required</string>
+    <string name="profession_required">Profession is required</string>
+    <string name="login_failed">Login failed</string>
+    <string name="registration_failed">Registration failed</string>
+
+    <!-- General -->
+    <string name="loading">Loading…</string>
+    <string name="error_occurred">An error occurred</string>
 </resources>
