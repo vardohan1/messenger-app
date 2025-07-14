@@ -9,9 +9,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.vdavitashviliekvitsiani.messenger_app.model.User
+import com.vdavitashviliekvitsiani.messenger_app.service.MessagingService
 
 class MainViewModel : ViewModel() {
-    //private val messagingService = MessagingService.getInstance()
+    private val messagingService = MessagingService.getInstance()
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -36,7 +37,7 @@ class MainViewModel : ViewModel() {
     val filteredConversations: StateFlow<List<Conversation>> = _filteredConversations.asStateFlow()
 
     init {
-        //loadConversations()
+        loadConversations()
         loadCurrentUser()
     }
 
@@ -68,6 +69,18 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private fun loadConversations() {
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            messagingService.getConversationsForUser { conversations ->
+                _conversations.value = conversations
+                filterConversations()
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun searchUsers(query: String) {
         if (query.isEmpty()) {
             _searchResults.value = emptyList()
@@ -76,9 +89,9 @@ class MainViewModel : ViewModel() {
         }
 
         _isSearching.value = true
-//        messagingService.searchUsers(query) { users ->
-//            _searchResults.value = users
-//            _isSearching.value = false
-//        }
+        messagingService.searchUsers(query) { users ->
+            _searchResults.value = users
+            _isSearching.value = false
+        }
     }
 }
