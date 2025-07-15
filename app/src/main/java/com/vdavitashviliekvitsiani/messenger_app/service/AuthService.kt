@@ -1,14 +1,15 @@
 package com.vdavitashviliekvitsiani.messenger_app.service
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.vdavitashviliekvitsiani.messenger_app.model.User
 
 class AuthService {
 
     private val auth = FirebaseAuth.getInstance()
-    private val database = FirebaseDatabase.getInstance()
-    private val usersRef = database.getReference("users")
+    private val database = FirebaseDatabase.getInstance().reference
 
     companion object {
         @Volatile
@@ -21,120 +22,137 @@ class AuthService {
         }
     }
 
-    fun getCurrentUser() = auth.currentUser
+    fun getCurrentUser(): FirebaseUser? = auth.currentUser
 
-    fun isUserLoggedIn(): Boolean = auth.currentUser != null
-
-    fun signUp(
-        nickname: String,
-        profession: String,
-        password: String,
-        onResult: (Boolean, String?) -> Unit
-    ) {
-        // Check if nickname is unique first
-        checkNicknameAvailability(nickname) { isAvailable ->
-            if (!isAvailable) {
-                onResult(false, "Nickname already exists")
-                return@checkNicknameAvailability
-            }
-
-            // Create email from nickname for Firebase Auth
-            val email = "${nickname.lowercase()}@messenger.app"
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val firebaseUser = auth.currentUser
-                        firebaseUser?.let { user ->
-                            val newUser = User(
-                                uid = user.uid,
-                                nickname = nickname,
-                                profession = profession,
-                                profileImageUrl = "",
-                                isOnline = true,
-                                lastSeen = System.currentTimeMillis()
-                            )
-
-                            saveUserToDatabase(newUser) { success ->
-                                onResult(success, if (success) null else "Failed to save user data")
-                            }
-                        } ?: onResult(false, "User creation failed")
-                    } else {
-                        onResult(false, task.exception?.message ?: "Registration failed")
-                    }
-                }
-        }
+    fun isUserLoggedIn(): Boolean {
+        val result = auth.currentUser != null
+        Log.d("AuthService", "isUserLoggedIn() = $result, currentUser = ${auth.currentUser}")
+        return result
     }
 
-    fun signIn(nickname: String, password: String, onResult: (Boolean, String?) -> Unit) {
-        val email = "${nickname.lowercase()}@messenger.app"
+    fun signUp(nickname: String, profession: String, password: String, onResult: (Boolean, String?) -> Unit) {
+        Log.d("AuthService", "Starting signUp for nickname: $nickname")
 
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    updateUserOnlineStatus(true)
-                    onResult(true, null)
-                } else {
-                    onResult(false, task.exception?.message ?: "Login failed")
-                }
-            }
-    }
-
-    fun signOut() {
-        updateUserOnlineStatus(false)
-        auth.signOut()
-    }
-
-    private fun checkNicknameAvailability(nickname: String, onResult: (Boolean) -> Unit) {
-        usersRef.orderByChild("nickname")
-            .equalTo(nickname)
+        // Check if nickname already exists first
+        database.child("users").orderByChild("nickname").equalTo(nickname)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    onResult(!snapshot.exists())
+                    Log.d("AuthService", "Nickname check completed, exists: ${snapshot.exists()}")
+
+                    if (snapshot.exists()) {
+                        Log.d("AuthService", "Nickname already exists")
+                        onResult(false, "Nickname already exists")
+                    } else {
+                        Log.d("AuthService", "Nickname available, creating Firebase Auth account")
+
+                        // Create account with Firebase Auth using email format
+                        val email = "${nickname}@messenger.app" // Create unique email
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                Log.d("AuthService", "Firebase Auth completed: ${task.isSuccessful}")
+
+                                if (task.isSuccessful) {
+                                    val user = task.result?.user
+                                    Log.d("AuthService", "Firebase user created: ${user?.uid}")
+
+                                    user?.let { firebaseUser ->
+                                        val userData = User(
+                                            uid = firebaseUser.uid,
+                                            nickname = nickname,
+                                            profession = profession,
+                                            profileImageUrl = "",
+                                            isOnline = true
+                                        )
+
+                                        Log.d("AuthService", "Saving user data to database: $userData")
+
+                                        // Save user data to Realtime Database
+                                        database.child("users").child(firebaseUser.uid).setValue(userData.toMap())
+                                            .addOnCompleteListener { dbTask ->
+                                                Log.d("AuthService", "Database save completed: ${dbTask.isSuccessful}")
+
+                                                if (dbTask.isSuccessful) {
+                                                    Log.d("AuthService", "Sign up successful!")
+                                                    onResult(true, null)
+                                                } else {
+                                                    Log.e("AuthService", "Database save failed: ${dbTask.exception?.message}")
+                                                    onResult(false, dbTask.exception?.message ?: "Failed to save user data")
+                                                }
+                                            }
+                                    } ?: run {
+                                        Log.e("AuthService", "Failed to get user data from Firebase Auth")
+                                        onResult(false, "Failed to get user data")
+                                    }
+                                } else {
+                                    Log.e("AuthService", "Firebase Auth failed: ${task.exception?.message}")
+                                    onResult(false, task.exception?.message ?: "Authentication failed")
+                                }
+                            }
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    onResult(false)
+                    Log.e("AuthService", "Database nickname check failed: ${error.message}")
+                    onResult(false, "Database error: ${error.message}")
                 }
             })
     }
 
-    private fun saveUserToDatabase(user: User, onResult: (Boolean) -> Unit) {
-        usersRef.child(user.uid)
-            .setValue(user.toMap())
+    fun signIn(nickname: String, password: String, onResult: (Boolean, String?) -> Unit) {
+        Log.d("AuthService", "Starting signIn for nickname: $nickname")
+
+        // Convert nickname to email format
+        val email = "${nickname}@messenger.app"
+
+        auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                onResult(task.isSuccessful)
+                Log.d("AuthService", "Firebase signIn completed: ${task.isSuccessful}")
+
+                if (task.isSuccessful) {
+                    Log.d("AuthService", "Sign in successful!")
+                    onResult(true, null)
+                } else {
+                    Log.e("AuthService", "Sign in failed: ${task.exception?.message}")
+                    onResult(false, task.exception?.message ?: "Sign in failed")
+                }
             }
     }
 
     fun getCurrentUserData(onResult: (User?) -> Unit) {
+        Log.d("AuthService", "getCurrentUserData called")
         val currentUser = auth.currentUser
+        Log.d("AuthService", "currentUser = ${currentUser?.uid}")
+
         if (currentUser != null) {
-            usersRef.child(currentUser.uid)
+            database.child("users").child(currentUser.uid)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        val userMap = snapshot.value as? Map<String, Any>
-                        val user = userMap?.let { User.fromMap(it) }
-                        onResult(user)
+                        Log.d("AuthService", "Database query completed, exists = ${snapshot.exists()}")
+
+                        if (snapshot.exists()) {
+                            val userMap = snapshot.value as? Map<String, Any>
+                            val user = userMap?.let { User.fromMap(it) }
+                            Log.d("AuthService", "User found: $user")
+                            onResult(user)
+                        } else {
+                            Log.d("AuthService", "No user data found in database")
+                            onResult(null)
+                        }
                     }
 
                     override fun onCancelled(error: DatabaseError) {
+                        Log.e("AuthService", "Database error: ${error.message}")
                         onResult(null)
                     }
                 })
         } else {
+            Log.d("AuthService", "No current user in Firebase Auth")
             onResult(null)
         }
     }
 
-    private fun updateUserOnlineStatus(isOnline: Boolean) {
-        val currentUser = auth.currentUser
-        currentUser?.let { user ->
-            val updates = mapOf(
-                "isOnline" to isOnline,
-                "lastSeen" to System.currentTimeMillis()
-            )
-            usersRef.child(user.uid).updateChildren(updates)
-        }
+    fun signOut() {
+        Log.d("AuthService", "Signing out")
+        auth.signOut()
     }
 }

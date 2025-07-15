@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.vdavitashviliekvitsiani.messenger_app.ui.main.HomeScreen
+import com.vdavitashviliekvitsiani.messenger_app.ui.main.MainViewModel
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,12 +73,26 @@ class MainActivity : ComponentActivity() {
             }
 
             isAuthenticated -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Welcome to Messenger! (Main screens coming soon...)")
-                }
+                val viewModel: MainViewModel = viewModel()
+                val conversations by viewModel.filteredConversations.collectAsState()
+                val searchQuery by viewModel.searchQuery.collectAsState()
+                val isLoading by viewModel.isLoading.collectAsState()
+
+                HomeScreen(
+                    conversations = conversations,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                    onConversationClick = { conversation ->
+                        // TODO: Navigate to chat screen
+                    },
+                    onAddConversationClick = {
+                        // TODO: Navigate to search users screen
+                    },
+                    onProfileClick = {
+                        // TODO: Navigate to profile screen
+                    },
+                    isLoading = isLoading
+                )
             }
 
             else -> {
