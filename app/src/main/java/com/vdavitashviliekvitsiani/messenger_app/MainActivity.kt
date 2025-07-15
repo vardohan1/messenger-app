@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.vdavitashviliekvitsiani.messenger_app.service.AuthService
 import com.vdavitashviliekvitsiani.messenger_app.ui.auth.AuthActivity
+import com.vdavitashviliekvitsiani.messenger_app.ui.profile.ProfileActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.theme.MessengerappTheme
 
 class MainActivity : ComponentActivity() {
@@ -89,7 +90,8 @@ class MainActivity : ComponentActivity() {
                         // TODO: Navigate to search users screen
                     },
                     onProfileClick = {
-                        // TODO: Navigate to profile screen
+                        val intent = Intent(this@MainActivity, ProfileActivity::class.java)
+                        startActivity(intent)
                     },
                     isLoading = isLoading
                 )

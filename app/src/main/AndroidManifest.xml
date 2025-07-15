@@ -28,6 +28,11 @@
             android:name=".ui.auth.AuthActivity"
             android:exported="false"
             android:theme="@style/Theme.Messengerapp" />
+
+        <activity
+            android:name=".ui.profile.ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Messengerapp" />
     </application>
 
 </manifest>
