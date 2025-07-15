@@ -1,4 +1,3 @@
-// Update ProfileScreen.kt
 package com.vdavitashviliekvitsiani.messenger_app.ui.profile
 
 import androidx.compose.foundation.Image
@@ -8,8 +7,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,7 +30,8 @@ fun ProfileScreen(
     onSignOutClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onBackToHomeClick: () -> Unit,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    onFabClick: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -202,16 +200,17 @@ fun ProfileScreen(
         ) {
             com.vdavitashviliekvitsiani.messenger_app.ui.main.BottomNavigationBar(
                 onHomeClick = onBackToHomeClick,
-                onProfileClick = { },
+                onProfileClick = onFabClick,
                 currentScreen = "profile"
             )
         }
 
         FloatingActionButton(
-            onClick = { /* TODO: Add functionality */ },
+            onClick = onFabClick,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 96.dp, end = 16.dp),
+            shape = CircleShape,
             containerColor = colorResource(id =  R.color.primary_blue)
         ) {
             Icon(

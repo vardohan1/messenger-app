@@ -15,7 +15,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Messengerapp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +30,11 @@
 
         <activity
             android:name=".ui.profile.ProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Messengerapp" />
+
+        <activity
+            android:name=".ui.search.SearchUsersActivity"
             android:exported="false"
             android:theme="@style/Theme.Messengerapp" />
     </application>

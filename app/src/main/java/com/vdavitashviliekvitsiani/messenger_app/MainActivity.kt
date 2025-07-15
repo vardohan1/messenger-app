@@ -21,6 +21,7 @@ import com.vdavitashviliekvitsiani.messenger_app.service.AuthService
 import com.vdavitashviliekvitsiani.messenger_app.ui.auth.AuthActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.profile.ProfileActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.theme.MessengerappTheme
+import com.vdavitashviliekvitsiani.messenger_app.ui.search.SearchUsersActivity
 
 class MainActivity : ComponentActivity() {
 
@@ -82,15 +83,19 @@ class MainActivity : ComponentActivity() {
                 HomeScreen(
                     conversations = conversations,
                     searchQuery = searchQuery,
-                    onSearchQueryChange = { viewModel.updateSearchQuery(it) },
                     onConversationClick = { conversation ->
                         // TODO: Navigate to chat screen
                     },
                     onAddConversationClick = {
-                        // TODO: Navigate to search users screen
+                        val intent = Intent(this@MainActivity, SearchUsersActivity::class.java)
+                        startActivity(intent)
                     },
                     onProfileClick = {
                         val intent = Intent(this@MainActivity, ProfileActivity::class.java)
+                        startActivity(intent)
+                    },
+                    onSearchUsersClick = {
+                        val intent = Intent(this@MainActivity, SearchUsersActivity::class.java)
                         startActivity(intent)
                     },
                     isLoading = isLoading

@@ -7,11 +7,17 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vdavitashviliekvitsiani.messenger_app.ui.auth.AuthActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.main.MainViewModel
+import com.vdavitashviliekvitsiani.messenger_app.ui.search.SearchUsersActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.theme.MessengerappTheme
 
 class ProfileActivity : ComponentActivity() {
@@ -51,6 +57,10 @@ class ProfileActivity : ComponentActivity() {
             },
             onEditProfileClick = {
                 // TODO: Navigate to edit profile screen
+            },
+            onFabClick = {
+                val intent = Intent(this@ProfileActivity, SearchUsersActivity::class.java)
+                startActivity(intent)
             },
             onBackToHomeClick = {
                 finish()

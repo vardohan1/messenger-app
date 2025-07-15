@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -39,10 +38,10 @@ import com.vdavitashviliekvitsiani.messenger_app.R
 fun HomeScreen(
     conversations: List<Conversation> = emptyList(),
     searchQuery: String = "",
-    onSearchQueryChange: (String) -> Unit = {},
     onConversationClick: (Conversation) -> Unit = {},
     onAddConversationClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onSearchUsersClick: () -> Unit = {},
     isLoading: Boolean = false
 ) {
     var isSearching by remember { mutableStateOf(false) }
@@ -77,30 +76,38 @@ fun HomeScreen(
                     if (!isSearching) {
                         Spacer(modifier = Modifier.height(24.dp))
                     }
-
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = {
-                            onSearchQueryChange(it)
-                            isSearching = it.isNotEmpty()
-                        },
-                        placeholder = { Text("Search") },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = Color.Gray
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(25.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                    Box(
+                        modifier = Modifier
+                            .clickable{
+                                onSearchUsersClick()
+                            }
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = {
+//                                onSearchQueryChange(it)
+//                                isSearching = it.isNotEmpty()
+                            },
+                            placeholder = { Text("Search") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Search,
+                                    contentDescription = "Search",
+                                    tint = Color.Gray
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(25.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                disabledBorderColor = Color.Transparent,
+                                disabledContainerColor = Color.White,
+                                disabledPlaceholderColor = Color.Gray,
+                                disabledLeadingIconColor = Color.Gray
+                            ),
+                            enabled = false
                         )
-                    )
+                    }
 
                     if (!isSearching) {
                         Spacer(modifier = Modifier.height(16.dp))
@@ -169,13 +176,16 @@ fun HomeScreen(
             onClick = onAddConversationClick,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = if (isScrollingUp || conversations.isEmpty()) 96.dp else 16.dp, end = 16.dp),
-            containerColor = colorResource(id = R.color.primary_blue)
+                .padding(bottom = if (isScrollingUp || conversations.isEmpty()) 96.dp else 16.dp, end = 16.dp)
+                .size(56.dp),
+            containerColor = colorResource(id = R.color.primary_blue),
+            shape = CircleShape
         ) {
             Icon(
                 Icons.Default.Add,
                 contentDescription = "Add conversation",
-                tint = Color.White
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
             )
         }
     }
@@ -301,4 +311,3 @@ fun BottomNavigationBar(
         )
     }
 }
-
