@@ -1,7 +1,9 @@
 package com.vdavitashviliekvitsiani.messenger_app.ui.profile
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +29,8 @@ import com.vdavitashviliekvitsiani.messenger_app.model.User
 @Composable
 fun ProfileScreen(
     user: User?,
+    selectedImageUri: Uri? = null,
+    onProfileImageClick: () -> Unit,
     onSignOutClick: () -> Unit,
     onEditProfileClick: (nickname: String, profession: String) -> Unit,
     onBackToHomeClick: () -> Unit,
@@ -54,7 +58,7 @@ fun ProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = colorResource(id =  R.color.primary_blue)
+                    containerColor = colorResource(id = R.color.primary_blue)
                 ),
                 shape = RoundedCornerShape(0.dp)
             ) {
@@ -67,31 +71,37 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(40.dp))
 
                     Box(
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .clickable { onProfileImageClick() }
                     ) {
-                        if (user?.profileImageUrl?.isNotEmpty() == true) {
-                            AsyncImage(
-                                model = user.profileImageUrl,
-                                contentDescription = "Profile picture",
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Gray.copy(alpha = 0.3f)),
-                                contentAlignment = Alignment.Center
-                            ) {
+                        when {
+                            selectedImageUri != null -> {
+                                AsyncImage(
+                                    model = selectedImageUri,
+                                    contentDescription = "Profile picture",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop,
+                                    placeholder = painterResource(id = R.drawable.avatar_image_placeholder)
+                                )
+                            }
+                            !user?.profileImageUrl.isNullOrEmpty() -> {
+                                AsyncImage(
+                                    model = user.profileImageUrl,
+                                    contentDescription = "Profile picture",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop,
+                                    placeholder = painterResource(id = R.drawable.avatar_image_placeholder),
+                                    error = painterResource(id = R.drawable.avatar_image_placeholder)
+                                )
+                            }
+                            else -> {
                                 Image(
                                     painter = painterResource(id = R.drawable.avatar_image_placeholder),
                                     contentDescription = "Default profile picture",
-                                    modifier = Modifier
-                                        .size(120.dp)
-                                        .clip(CircleShape),
+                                    modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop
                                 )
                             }
@@ -187,18 +197,18 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = colorResource(id =  R.color.text_gray)
+                        contentColor = colorResource(id = R.color.text_gray)
                     ),
                     border = androidx.compose.foundation.BorderStroke(
                         width = 1.dp,
-                        color = colorResource(id =  R.color.border_gray)
+                        color = colorResource(id = R.color.border_gray)
                     ),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !isLoading
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color = colorResource(id =  R.color.text_gray),
+                            color = colorResource(id = R.color.text_gray),
                             modifier = Modifier.size(20.dp)
                         )
                     } else {
@@ -230,7 +240,7 @@ fun ProfileScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 96.dp, end = 16.dp),
             shape = CircleShape,
-            containerColor = colorResource(id =  R.color.primary_blue)
+            containerColor = colorResource(id = R.color.primary_blue)
         ) {
             Icon(
                 Icons.Default.Add,

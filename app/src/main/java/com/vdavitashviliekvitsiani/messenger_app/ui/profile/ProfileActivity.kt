@@ -1,9 +1,12 @@
 package com.vdavitashviliekvitsiani.messenger_app.ui.profile
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -43,11 +46,28 @@ class ProfileActivity : ComponentActivity() {
         val currentUser by viewModel.currentUser.collectAsState()
 
         var isSigningOut by remember { mutableStateOf(false) }
-
         var isUpdating by remember { mutableStateOf(false) }
+        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+        var isUploadingImage by remember { mutableStateOf(false) }
+
+        val photoPickerLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            uri?.let {
+                selectedImageUri = it
+                isUploadingImage = true
+                viewModel.updateUserProfileImage() { success ->
+                    isUploadingImage = false
+                }
+            }
+        }
 
         ProfileScreen(
             user = currentUser,
+            selectedImageUri = selectedImageUri,
+            onProfileImageClick = {
+                photoPickerLauncher.launch("image/*")
+            },
             onSignOutClick = {
                 isSigningOut = true
                 viewModel.signOut()
@@ -59,7 +79,7 @@ class ProfileActivity : ComponentActivity() {
             },
             onEditProfileClick = { nickname, profession ->
                 isUpdating = true
-                viewModel.updateUserProfile(nickname, profession) {success, error ->
+                viewModel.updateUserProfile(nickname, profession) { success, error ->
                     isUpdating = false
                 }
             },
@@ -71,7 +91,7 @@ class ProfileActivity : ComponentActivity() {
                 finish()
             },
             isLoading = isSigningOut,
-            isUpdating = isUpdating
+            isUpdating = isUpdating || isUploadingImage
         )
     }
 }

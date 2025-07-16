@@ -109,4 +109,18 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun updateUserProfileImage(onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val randomImageUrl = "https://picsum.photos/200/200?random=${System.currentTimeMillis()}"
+
+            _currentUser.value?.let { user ->
+                authService.updateUserProfileImage(randomImageUrl) { success ->
+                    if (success) {
+                        _currentUser.value = user.copy(profileImageUrl = randomImageUrl)
+                    }
+                    onComplete(success)
+                }
+            }
+        }
+    }
 }

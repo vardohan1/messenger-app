@@ -3,9 +3,10 @@ package com.vdavitashviliekvitsiani.messenger_app.service
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.*
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.vdavitashviliekvitsiani.messenger_app.model.User
 
 class AuthService {
@@ -206,5 +207,24 @@ class AuthService {
     fun signOut() {
         Log.d("AuthService", "Signing out")
         auth.signOut()
+    }
+    fun updateUserProfileImage(imageUrl: String, onComplete: (Boolean) -> Unit) {
+        val currentUser = auth.currentUser
+        val updates = hashMapOf<String, Any>(
+            "profileImageUrl" to imageUrl
+        )
+        if (currentUser != null) {
+            database.child("users")
+                .child(currentUser.uid)
+                .updateChildren(updates)
+                .addOnSuccessListener {
+                    onComplete(true)
+                }
+                .addOnFailureListener {
+                    onComplete(false)
+                }
+        } else {
+            onComplete(false)
+        }
     }
 }
