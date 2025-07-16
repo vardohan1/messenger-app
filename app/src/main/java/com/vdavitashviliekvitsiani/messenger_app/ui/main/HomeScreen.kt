@@ -53,20 +53,10 @@ fun HomeScreen(
         firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 100
     }
 
-    val isScrollingUp by remember {
-        derivedStateOf {
-            listState.isScrollInProgress && listState.firstVisibleItemScrollOffset < 0
-        }
-    }
-
     var showBottomNav by remember { mutableStateOf(true) }
 
     LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress) {
-            showBottomNav = true
-        } else if (firstVisibleItemIndex > 0) {
-            showBottomNav = false
-        }
+        showBottomNav = !listState.isScrollInProgress
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -150,10 +140,11 @@ fun HomeScreen(
                                 )
 
                                 Column(
-                                    modifier = Modifier.padding(16.dp)
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .height(180.dp)
                                 ) {
-                                    Spacer(modifier = Modifier.height(24.dp))
-
+                                    Spacer(modifier = Modifier.weight(1f))
                                     Box(
                                         modifier = Modifier
                                             .clickable { onSearchUsersClick() }
@@ -231,7 +222,7 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(
                                 top = 8.dp,
-                                bottom = if (showBottomNav) 88.dp else 16.dp
+                                bottom = 88.dp
                             )
                         ) {
                             items(conversations) { conversation ->
@@ -266,7 +257,7 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(
-                    bottom = if (showBottomNav) 96.dp else 16.dp,
+                    bottom = 96.dp,
                     end = 16.dp
                 )
         ) {
