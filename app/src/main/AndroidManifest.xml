@@ -37,6 +37,11 @@
             android:name=".ui.search.SearchUsersActivity"
             android:exported="false"
             android:theme="@style/Theme.Messengerapp" />
+
+        <activity
+            android:name=".ui.chat.ChatActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -1,5 +1,6 @@
 package com.vdavitashviliekvitsiani.messenger_app.ui.search
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -10,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vdavitashviliekvitsiani.messenger_app.ui.chat.ChatActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.main.MainViewModel
 import com.vdavitashviliekvitsiani.messenger_app.ui.theme.MessengerappTheme
 import kotlinx.coroutines.Job
@@ -67,12 +69,13 @@ class SearchUsersActivity : ComponentActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
 
-                // TODO: Navigate to chat when ChatActivity is implemented
-                // val intent = Intent(this@SearchUsersActivity, ChatActivity::class.java)
-                // intent.putExtra("otherUserId", user.uid)
-                // intent.putExtra("otherUserNickname", user.nickname)
-                // intent.putExtra("otherUserProfileUrl", user.profileImageUrl)
-                // startActivity(intent)
+                val intent = Intent(this@SearchUsersActivity, ChatActivity::class.java).apply {
+                    putExtra("otherUserId", user.uid)
+                    putExtra("otherUserNickname", user.nickname)
+                    putExtra("otherUserProfileUrl", user.profileImageUrl)
+                    putExtra("conversationId", "")
+                }
+                startActivity(intent)
             },
             onBackClick = {
                 finish()

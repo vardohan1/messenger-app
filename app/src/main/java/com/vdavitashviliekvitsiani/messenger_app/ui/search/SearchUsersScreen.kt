@@ -230,15 +230,6 @@ fun UserSearchItem(
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
-
-            if (user.isOnline) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(Color.Green)
-                )
-            }
         }
     }
 }

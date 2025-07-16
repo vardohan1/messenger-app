@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.vdavitashviliekvitsiani.messenger_app.service.AuthService
 import com.vdavitashviliekvitsiani.messenger_app.ui.auth.AuthActivity
+import com.vdavitashviliekvitsiani.messenger_app.ui.chat.ChatActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.profile.ProfileActivity
 import com.vdavitashviliekvitsiani.messenger_app.ui.theme.MessengerappTheme
 import com.vdavitashviliekvitsiani.messenger_app.ui.search.SearchUsersActivity
@@ -84,7 +85,17 @@ class MainActivity : ComponentActivity() {
                     conversations = conversations,
                     searchQuery = searchQuery,
                     onConversationClick = { conversation ->
-                        // TODO: Navigate to chat screen
+                        val currentUserId = AuthService.getInstance().getCurrentUser()?.uid ?: ""
+                        val otherUserId = conversation.participants.find { it != currentUserId }
+
+                        val intent = Intent(this@MainActivity, ChatActivity::class.java).apply {
+                            putExtra("otherUserId", otherUserId)
+                            putExtra("otherUserNickname", conversation.otherUserNickname)
+                            putExtra("otherUserProfileUrl", conversation.otherUserProfileUrl)
+                            putExtra("conversationId", conversation.id)
+                            putExtra("otherUserWork", conversation.otherUserProfession)
+                        }
+                        startActivity(intent)
                     },
                     onAddConversationClick = {
                         val intent = Intent(this@MainActivity, SearchUsersActivity::class.java)

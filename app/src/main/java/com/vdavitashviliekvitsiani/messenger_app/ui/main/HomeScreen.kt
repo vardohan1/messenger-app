@@ -1,8 +1,8 @@
 package com.vdavitashviliekvitsiani.messenger_app.ui.main
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,18 +12,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,8 +30,9 @@ import coil.compose.AsyncImage
 import com.vdavitashviliekvitsiani.messenger_app.model.Conversation
 import com.vdavitashviliekvitsiani.messenger_app.util.toTimeAgo
 import com.vdavitashviliekvitsiani.messenger_app.R
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreen(
     conversations: List<Conversation> = emptyList(),
@@ -44,13 +43,29 @@ fun HomeScreen(
     onSearchUsersClick: () -> Unit = {},
     isLoading: Boolean = false
 ) {
-    var isSearching by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val firstVisibleItemIndex by remember { derivedStateOf { listState.firstVisibleItemIndex } }
+    val firstVisibleItemScrollOffset by remember { derivedStateOf { listState.firstVisibleItemScrollOffset } }
+
+    val isHeaderCollapsed = remember(firstVisibleItemIndex, firstVisibleItemScrollOffset) {
+        firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 100
+    }
 
     val isScrollingUp by remember {
         derivedStateOf {
-            listState.firstVisibleItemScrollOffset == 0 ||
-                    listState.firstVisibleItemIndex == 0
+            listState.isScrollInProgress && listState.firstVisibleItemScrollOffset < 0
+        }
+    }
+
+    var showBottomNav by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (!listState.isScrollInProgress) {
+            showBottomNav = true
+        } else if (firstVisibleItemIndex > 0) {
+            showBottomNav = false
         }
     }
 
@@ -60,57 +75,116 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(colorResource(id = R.color.background_gray))
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = colorResource(id = R.color.primary_blue)
-                ),
-                shape = RoundedCornerShape(
-                    bottomStart = if (isSearching) 0.dp else 16.dp,
-                    bottomEnd = if (isSearching) 0.dp else 16.dp
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    if (!isSearching) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clickable{
-                                onSearchUsersClick()
-                            }
+            AnimatedContent(
+                targetState = isHeaderCollapsed,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) with
+                            fadeOut(animationSpec = tween(300))
+                }
+            ) { collapsed ->
+                if (collapsed) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.primary_blue)
+                        ),
+                        shape = RoundedCornerShape(0.dp)
                     ) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = {
-//                                onSearchQueryChange(it)
-//                                isSearching = it.isNotEmpty()
-                            },
-                            placeholder = { Text("Search") },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = "Search",
-                                    tint = Color.Gray
-                                )
-                            },
+                        Row(
                             modifier = Modifier
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(25.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                disabledBorderColor = Color.Transparent,
-                                disabledContainerColor = Color.White,
-                                disabledPlaceholderColor = Color.Gray,
-                                disabledLeadingIconColor = Color.Gray
-                            ),
-                            enabled = false
-                        )
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { onSearchUsersClick() }
+                            ) {
+                                OutlinedTextField(
+                                    value = searchQuery,
+                                    onValueChange = {},
+                                    placeholder = { Text("Search", fontSize = 14.sp) },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Search,
+                                            contentDescription = "Search",
+                                            tint = Color.Gray,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        disabledBorderColor = Color.Transparent,
+                                        disabledContainerColor = Color.White,
+                                        disabledPlaceholderColor = Color.Gray,
+                                        disabledLeadingIconColor = Color.Gray
+                                    ),
+                                    enabled = false,
+                                    singleLine = true
+                                )
+                            }
+                        }
                     }
+                } else {
+                    Box {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = colorResource(id = R.color.primary_blue)
+                            ),
+                            shape = RoundedCornerShape(
+                                bottomStart = 16.dp,
+                                bottomEnd = 16.dp
+                            )
+                        ) {
+                            Box {
+                                Image(
+                                    painter = painterResource(id = R.drawable.background),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp),
+                                    contentScale = ContentScale.FillBounds
+                                )
 
-                    if (!isSearching) {
-                        Spacer(modifier = Modifier.height(16.dp))
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Spacer(modifier = Modifier.height(24.dp))
+
+                                    Box(
+                                        modifier = Modifier
+                                            .clickable { onSearchUsersClick() }
+                                    ) {
+                                        OutlinedTextField(
+                                            value = searchQuery,
+                                            onValueChange = {},
+                                            placeholder = { Text("Search") },
+                                            leadingIcon = {
+                                                Icon(
+                                                    Icons.Default.Search,
+                                                    contentDescription = "Search",
+                                                    tint = Color.Gray
+                                                )
+                                            },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(25.dp),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                disabledBorderColor = Color.Transparent,
+                                                disabledContainerColor = Color.White,
+                                                disabledPlaceholderColor = Color.Gray,
+                                                disabledLeadingIconColor = Color.Gray
+                                            ),
+                                            enabled = false
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -133,11 +207,21 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "No conversations yet",
-                                color = colorResource(id = R.color.text_gray),
-                                fontSize = 16.sp
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "No conversations yet",
+                                    color = colorResource(id = R.color.text_gray),
+                                    fontSize = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Start a new conversation",
+                                    color = colorResource(id = R.color.text_gray),
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
 
@@ -145,7 +229,10 @@ fun HomeScreen(
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
+                            contentPadding = PaddingValues(
+                                top = 8.dp,
+                                bottom = if (showBottomNav) 88.dp else 16.dp
+                            )
                         ) {
                             items(conversations) { conversation ->
                                 ConversationItem(
@@ -160,7 +247,7 @@ fun HomeScreen(
         }
 
         AnimatedVisibility(
-            visible = isScrollingUp || conversations.isEmpty(),
+            visible = showBottomNav,
             enter = slideInVertically(initialOffsetY = { it }),
             exit = slideOutVertically(targetOffsetY = { it }),
             modifier = Modifier.align(Alignment.BottomCenter)
@@ -172,21 +259,29 @@ fun HomeScreen(
             )
         }
 
-        FloatingActionButton(
-            onClick = onAddConversationClick,
+        AnimatedVisibility(
+            visible = true,
+            enter = scaleIn(),
+            exit = scaleOut(),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = if (isScrollingUp || conversations.isEmpty()) 96.dp else 16.dp, end = 16.dp)
-                .size(56.dp),
-            containerColor = colorResource(id = R.color.primary_blue),
-            shape = CircleShape
+                .padding(
+                    bottom = if (showBottomNav) 96.dp else 16.dp,
+                    end = 16.dp
+                )
         ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = "Add conversation",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
+            FloatingActionButton(
+                onClick = onAddConversationClick,
+                containerColor = colorResource(id = R.color.primary_blue),
+                shape = CircleShape
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add conversation",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }
@@ -212,28 +307,49 @@ fun ConversationItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (conversation.otherUserProfileUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = conversation.otherUserProfileUrl,
-                    contentDescription = "Profile picture",
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(colorResource(id = R.color.border_gray))
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(colorResource(id = R.color.yellow_circle)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Default avatar",
-                        tint = Color.Gray
+            Box {
+                if (conversation.otherUserProfileUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = conversation.otherUserProfileUrl,
+                        contentDescription = "Profile picture",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(colorResource(id = R.color.border_gray))
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(colorResource(id = R.color.yellow_circle)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = "Default avatar",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                if (conversation.unreadCount > 0) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (conversation.unreadCount > 9) "9+" else conversation.unreadCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
@@ -242,15 +358,30 @@ fun ConversationItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = conversation.otherUserNickname,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = Color.Black
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = conversation.otherUserNickname,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color.Black,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = conversation.lastMessageTime.toTimeAgo(),
+                        fontSize = 12.sp,
+                        color = colorResource(id = R.color.text_gray),
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
 
                 Text(
-                    text = conversation.lastMessage,
+                    text = conversation.lastMessage.ifEmpty { "Start a conversation" },
                     fontSize = 14.sp,
                     color = colorResource(id = R.color.text_gray),
                     maxLines = 1,
@@ -258,12 +389,6 @@ fun ConversationItem(
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
-
-            Text(
-                text = conversation.lastMessageTime.toTimeAgo(),
-                fontSize = 12.sp,
-                color = colorResource(id = R.color.text_gray)
-            )
         }
     }
 }
