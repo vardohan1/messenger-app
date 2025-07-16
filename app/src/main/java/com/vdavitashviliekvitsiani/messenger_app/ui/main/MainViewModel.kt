@@ -94,4 +94,19 @@ class MainViewModel : ViewModel() {
             _isSearching.value = false
         }
     }
+
+    fun updateUserProfile(nickname: String, profession: String, onComplete: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            authService.updateUserProfile(nickname, profession) { success, error ->
+                if (success) {
+                    _currentUser.value = _currentUser.value?.copy(
+                        nickname = nickname,
+                        profession = profession
+                    )
+                }
+                onComplete(success, error)
+            }
+        }
+    }
+
 }

@@ -28,11 +28,23 @@ import com.vdavitashviliekvitsiani.messenger_app.model.User
 fun ProfileScreen(
     user: User?,
     onSignOutClick: () -> Unit,
-    onEditProfileClick: () -> Unit,
+    onEditProfileClick: (nickname: String, profession: String) -> Unit,
     onBackToHomeClick: () -> Unit,
     isLoading: Boolean = false,
+    isUpdating: Boolean = false,
     onFabClick: () -> Unit
 ) {
+    var nickname by remember(user?.nickname) {
+        mutableStateOf(user?.nickname ?: "")
+    }
+    var profession by remember(user?.profession) {
+        mutableStateOf(user?.profession ?: "")
+    }
+
+    val hasChanges = remember(nickname, profession, user) {
+        nickname != user?.nickname || profession != user?.profession
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -99,65 +111,72 @@ fun ProfileScreen(
             ) {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Card(
+                OutlinedTextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = { Text("Nickname") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id =  R.color.background_gray)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = colorResource(id = R.color.background_gray),
+                        unfocusedContainerColor = colorResource(id = R.color.background_gray),
+                        focusedBorderColor = colorResource(id = R.color.primary_blue),
+                        unfocusedBorderColor = Color.Transparent
                     ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = user?.nickname ?: "Loading...",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    )
-                }
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    enabled = !isUpdating
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Card(
+                OutlinedTextField(
+                    value = profession,
+                    onValueChange = { profession = it },
+                    label = { Text("Profession") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorResource(id =  R.color.background_gray)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = colorResource(id = R.color.background_gray),
+                        unfocusedContainerColor = colorResource(id = R.color.background_gray),
+                        focusedBorderColor = colorResource(id = R.color.primary_blue),
+                        unfocusedBorderColor = Color.Transparent
                     ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(
-                        text = user?.profession ?: "",
-                        fontSize = 16.sp,
-                        color = colorResource(id =  R.color.text_gray),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    )
-                }
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    enabled = !isUpdating
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = onEditProfileClick,
+                    onClick = {
+                        onEditProfileClick(nickname, profession)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(id =  R.color.primary_blue)
+                        containerColor = colorResource(id = R.color.primary_blue)
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = hasChanges && !isUpdating && nickname.isNotBlank()
                 ) {
-                    Text(
-                        text = "Update",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
-                    )
+                    if (isUpdating) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "Update",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

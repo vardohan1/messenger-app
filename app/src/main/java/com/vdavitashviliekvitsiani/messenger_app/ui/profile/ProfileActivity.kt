@@ -44,6 +44,8 @@ class ProfileActivity : ComponentActivity() {
 
         var isSigningOut by remember { mutableStateOf(false) }
 
+        var isUpdating by remember { mutableStateOf(false) }
+
         ProfileScreen(
             user = currentUser,
             onSignOutClick = {
@@ -55,8 +57,11 @@ class ProfileActivity : ComponentActivity() {
                 startActivity(intent)
                 finish()
             },
-            onEditProfileClick = {
-                // TODO: Navigate to edit profile screen
+            onEditProfileClick = { nickname, profession ->
+                isUpdating = true
+                viewModel.updateUserProfile(nickname, profession) {success, error ->
+                    isUpdating = false
+                }
             },
             onFabClick = {
                 val intent = Intent(this@ProfileActivity, SearchUsersActivity::class.java)
@@ -65,7 +70,8 @@ class ProfileActivity : ComponentActivity() {
             onBackToHomeClick = {
                 finish()
             },
-            isLoading = isSigningOut
+            isLoading = isSigningOut,
+            isUpdating = isUpdating
         )
     }
 }
