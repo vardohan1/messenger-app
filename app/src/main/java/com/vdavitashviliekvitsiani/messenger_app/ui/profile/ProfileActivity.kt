@@ -49,6 +49,7 @@ class ProfileActivity : ComponentActivity() {
         var isUpdating by remember { mutableStateOf(false) }
         var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
         var isUploadingImage by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf<String?>(null) }
 
         val photoPickerLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.GetContent()
@@ -79,7 +80,13 @@ class ProfileActivity : ComponentActivity() {
             },
             onEditProfileClick = { nickname, profession ->
                 isUpdating = true
+                errorMessage = null
+
                 viewModel.updateUserProfile(nickname, profession) { success, error ->
+                    if(!success){
+                        errorMessage = error
+                    }
+
                     isUpdating = false
                 }
             },
@@ -91,7 +98,8 @@ class ProfileActivity : ComponentActivity() {
                 finish()
             },
             isLoading = isSigningOut,
-            isUpdating = isUpdating || isUploadingImage
+            isUpdating = isUpdating || isUploadingImage,
+            errorMessage = errorMessage
         )
     }
 }

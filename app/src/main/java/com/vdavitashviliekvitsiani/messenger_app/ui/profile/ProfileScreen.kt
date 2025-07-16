@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -36,7 +37,8 @@ fun ProfileScreen(
     onBackToHomeClick: () -> Unit,
     isLoading: Boolean = false,
     isUpdating: Boolean = false,
-    onFabClick: () -> Unit
+    onFabClick: () -> Unit,
+    errorMessage: String?
 ) {
     var nickname by remember(user?.nickname) {
         mutableStateOf(user?.nickname ?: "")
@@ -221,8 +223,18 @@ fun ProfileScreen(
                 }
 
                 Spacer(modifier = Modifier.height(100.dp))
+
+                errorMessage?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
+
 
         Box(
             modifier = Modifier.align(Alignment.BottomCenter)
