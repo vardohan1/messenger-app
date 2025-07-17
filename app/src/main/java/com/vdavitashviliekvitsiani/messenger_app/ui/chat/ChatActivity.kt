@@ -31,10 +31,7 @@ class ChatActivity : ComponentActivity() {
                     val viewModel: ChatViewModel = viewModel(
                         factory = ChatViewModelFactory(
                             otherUserId = otherUserId,
-                            otherUserNickname = otherUserNickname,
-                            otherUserProfileUrl = otherUserProfileUrl,
-                            conversationId = conversationId,
-                            otherUserWork = otherUserWork
+                            conversationId = conversationId
                         )
                     )
 

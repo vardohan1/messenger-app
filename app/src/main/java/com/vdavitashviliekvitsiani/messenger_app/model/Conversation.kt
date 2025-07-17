@@ -11,17 +11,4 @@ data class Conversation(
     val otherUserProfession: String = "",
     val unreadCount: Int = 0
 ) {
-    fun toMap(): Map<String, Any> {
-        return mapOf(
-            "id" to id,
-            "participants" to participants,
-            "lastMessage" to lastMessage,
-            "lastMessageTime" to lastMessageTime,
-            "lastMessageSender" to lastMessageSender,
-            "otherUserNickname" to otherUserNickname,
-            "otherUserProfileUrl" to otherUserProfileUrl,
-            "otherUserProfession" to otherUserProfession,
-            "unreadCount" to unreadCount
-        )
-    }
 }

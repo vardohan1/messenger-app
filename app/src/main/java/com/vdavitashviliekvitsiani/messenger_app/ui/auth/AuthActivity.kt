@@ -85,9 +85,6 @@ class AuthActivity : ComponentActivity() {
                             }
                         }
                     },
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
                     isLoading = isLoading,
                     errorMessage = errorMessage
                 )

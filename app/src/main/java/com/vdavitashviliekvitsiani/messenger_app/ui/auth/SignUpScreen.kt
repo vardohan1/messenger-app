@@ -26,7 +26,6 @@ import com.vdavitashviliekvitsiani.messenger_app.R
 @Composable
 fun SignUpScreen(
     onSignUpClick: (String, String, String) -> Unit,
-    onBackClick: () -> Unit,
     isLoading: Boolean = false,
     errorMessage: String? = null
 ) {

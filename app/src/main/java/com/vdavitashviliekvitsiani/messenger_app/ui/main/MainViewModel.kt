@@ -25,7 +25,6 @@ class MainViewModel : ViewModel() {
     private val authService = AuthService.getInstance()
 
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
-    val conversations: StateFlow<List<Conversation>> = _conversations.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -39,11 +38,6 @@ class MainViewModel : ViewModel() {
     init {
         loadConversations()
         loadCurrentUser()
-    }
-
-    fun updateSearchQuery(query: String) {
-        _searchQuery.value = query
-        filterConversations()
     }
 
     private fun filterConversations() {

@@ -12,10 +12,7 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(
     private val otherUserId: String,
-    private val otherUserNickname: String,
-    private val otherUserProfileUrl: String,
-    private val conversationId: String,
-    private val otherUserWork: String
+    private val conversationId: String
 ) : ViewModel() {
 
     private val messagingService = MessagingService.getInstance()
@@ -92,15 +89,12 @@ class ChatViewModel(
 
 class ChatViewModelFactory(
     private val otherUserId: String,
-    private val otherUserNickname: String,
-    private val otherUserProfileUrl: String,
-    private val conversationId: String,
-    private val otherUserWork: String
+    private val conversationId: String
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
-            return ChatViewModel(otherUserId, otherUserNickname, otherUserProfileUrl, conversationId, otherUserWork) as T
+            return ChatViewModel(otherUserId, conversationId) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
